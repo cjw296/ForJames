@@ -1,0 +1,22 @@
+<people>
+	<!-- 
+		this import assumes that all permissions will be found or created, 
+		then assigned to the user 
+	-->
+	<person>
+		<email>pete@blueshed.co.uk</email>
+		<permissions>admin,user,dev</permissions>
+	</person>
+	<person>
+		<email>sam@spddo.co.uk</email>
+		<permissions>user</permissions>
+	</person>
+	<person>
+		<email>dashiell@blueshed.co.uk</email>
+		<permissions>user,dev</permissions>
+	</person>
+	<person>
+		<email>john.doe@acme.com</email>
+		<permissions>user,patch</permissions>
+	</person>
+</people>

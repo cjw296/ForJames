@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>Simple Validation</title>
+</head>
+<body>
+
+	title: <input type="text" data-bind="value:title,valueUpdate:'keyup'"/>
+	<hr/>
+	<h3 data-bind="text:title"></h3>
+	<div data-bind="text:content"></div>
+	
+	<script type="text/javascript" src="static/libs/jquery.js"></script>
+	<script type="text/javascript" src="static/libs/knockout/knockout-2.2.0.js"></script>
+	<script type="text/javascript" src="static/libs/knockout/knockout.validation.js"></script>
+	
+	<script type="text/javascript">
+	/** will run after the previous scripts have loaded **/
+	
+$(function(){
+	/** calling jQuery(function) asks jQuery to run function after document load is completed **/
+	
+	/** declare a view model **/
+	var viewModel = {
+		title: ko.observable('title'),
+		content: ko.observable("Hello World!")
+	};
+	
+	/** bind it to the document; just don't say what to bind it to **/
+	ko.applyBindings(viewModel);
+});
+	
+	</script>
+</body>
+</html>

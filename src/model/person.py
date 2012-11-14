@@ -21,6 +21,13 @@ class Person(Base):
     permissions = relationship('Permission', 
                                secondary="person_permission", 
                                lazy='joined')
+
+    '''Many to One relation with cascading delete '''
+    pages = relationship('Page', 
+                         remote_side='page.c.owner_id', 
+                         back_populates="owner", 
+                         lazy='joined',
+                         cascade="all, delete-orphan")
     
     
     def __repr__(self):

@@ -1,0 +1,10 @@
+<model>
+	<entity name="Person">
+		<string name="email" length="80">coments go here</field>
+		<string name="password" length="80"></field>
+		<relation type="many_2_many" name="permissions" to="Permission" to_name="people"/>
+	</entity>
+	<entity name="Permission">
+		<string name="name" length="80">coments go here</field>
+	</entity>
+</model>

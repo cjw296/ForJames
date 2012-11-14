@@ -3,8 +3,13 @@
 		<string name="email" length="80">coments go here</field>
 		<string name="password" length="80"></field>
 		<relation type="many_2_many" name="permissions" to="Permission" to_name="people"/>
+		<relation type="one_2_many" name="pages" to="Page" to_name="owner"/>
 	</entity>
 	<entity name="Permission">
 		<string name="name" length="80">coments go here</field>
+	</entity>
+	<entity name="Page">
+		<string name="title" length="80">coments go here</field>
+		<text name="Content"></field>
 	</entity>
 </model>

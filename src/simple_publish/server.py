@@ -28,7 +28,7 @@ class PageHandler(tornado.web.RequestHandler):
         session = self.application.Session()
         try:
             page = None
-            pages = session.query(model.Page).all()
+            pages = list(session.query(model.Page).all())
             if label:
                 for item in pages:
                     if item.label == label:
@@ -50,7 +50,7 @@ class PageEditHandler(tornado.web.RequestHandler):
         session = self.application.Session()
         try:
             page = None
-            pages = session.query(model.Page).all()
+            pages = list(session.query(model.Page).all())
             if id:
                 page = session.query(model.Page).get(id)
             else:

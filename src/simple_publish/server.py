@@ -24,7 +24,29 @@ class PageHandler(tornado.web.RequestHandler):
     
     tmpl = "page-tmpl.html"
     
-    def get(self, id, *args):
+    def get(self, label, *args):
+        session = self.application.Session()
+        try:
+            page = None
+            pages = session.query(model.Page).all()
+            if label:
+                for item in pages:
+                    if item.label == label:
+                        page = item
+                        break
+            else:
+                page = pages[0]
+            self.render(self.tmpl, page=page, pages=pages)
+        finally:
+            session.close()
+
+
+class PageEditHandler(tornado.web.RequestHandler):
+    
+    tmpl = "page-edit-tmpl.html"
+    
+    def get(self, id, *args, **kwargs):
+        logging.info("page %s", id)
         session = self.application.Session()
         try:
             page = None
@@ -33,16 +55,13 @@ class PageHandler(tornado.web.RequestHandler):
                 page = session.query(model.Page).get(id)
             else:
                 page = pages[0]
-            self.render(self.tmpl, page=page, pages=pages)
+            self.render(self.tmpl, page=page, pages=pages, error=kwargs.get("error"))
         finally:
             session.close()
 
 
-class PageEditHandler(PageHandler):
-    
-    tmpl = "page-edit-tmpl.html"
-
     def post(self, id, *args):
+        error = None
         session = self.application.Session()
         try:
             if self.get_argument("submit") == "Add":
@@ -57,13 +76,17 @@ class PageEditHandler(PageHandler):
                 page.content = self.get_argument('content')
                 session.commit()
             elif self.get_argument("submit") == "Delete":
+                if session.query(model.Page).count() == 1:
+                    raise Exception("Cannot delete last page!")
                 page = session.query(model.Page).get(id)
                 session.delete(page)
                 session.commit()
                 id = None
+        except Exception,ex:
+            error = str(ex)
         finally:
             session.close()
-        self.get(id, *args)
+        self.get(id, *args, error=error)
         
 
 class Application(tornado.web.Application):

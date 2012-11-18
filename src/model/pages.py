@@ -22,6 +22,10 @@ class Page(Base):
     owner = relationship('Person', 
                          remote_side='person.c.id', 
                          back_populates="pages")
+    
+    @property
+    def label(self):
+        return self.title.lower().replace(' ','_')
 
     def __repr__(self):
         return "<Person email=%r>" % self.email

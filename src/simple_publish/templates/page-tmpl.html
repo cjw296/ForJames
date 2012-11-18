@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<title>Pages</title>
-	<meta name="generator" content="BBEdit 10.1" />
+	<title>{{ page.title }}</title>
 	<link href="{{ static_url('libs/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
 </head>
 <body>
@@ -15,17 +14,15 @@
 	
 	<div class="row-fluid">
 		<div class="span2">
-			<ul class="nav nav-pills nav-stacked">
-			{% for item in pages %}
+			<ul class="nav nav-pills nav-stacked">{% for item in pages %}
 				<li {% if item==page %}class="active"{% end %}>
-					<a href="/page/{{ item.id }}">{{ item.title }}</a>
-				</li>
-			{% end %}
+					<a href="/page/{{ item.label }}">{{ item.title }}</a>
+				</li>{% end %}
 			</ul>
 			<a href="/page/{{ page.id }}/edit.html" class="btn btn-small">Edit</a>
 		</div>
 		<div class="span10">
-			{{ page.content }}
+			<p>{%raw page.content %}</p>
 		</div>
 	</div>
 	

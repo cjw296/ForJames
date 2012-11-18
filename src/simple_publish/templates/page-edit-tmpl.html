@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>Pages</title>
+	<meta name="generator" content="BBEdit 10.1" />
+	<link href="{{ static_url('libs/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+</head>
+<body>
+	<div class="container">
+		<div class="row-fluid">
+			<h1>Editor</h1>
+		</div>
+		<div class="row-fluid">
+			<div class="span2">
+				<ul class="nav nav-pills nav-stacked">
+				{% for item in pages %}
+					<li {% if item==page %}class="active"{% end %}>
+						<a href="/page/{{ item.id }}/edit.html">{{ item.title }}</a>
+					</li>
+				{% end %}
+				</ul>				
+				<a href="/page/{{ page.id }}" class="btn btn-small">View</a>
+			</div>
+			<div class="span10">
+				<form method="post">
+					<div>
+						<label>title</label>
+						<input type="text" name="title" value="{{ page.title }}" />
+					</div>
+					<div>
+						<label>content</label>
+						<textarea name="content">{{ page.content }}</textarea>
+					</div>
+					<div>
+						<input class="btn btn-danger" type="submit" name="submit" value="Delete"/>
+						<input class="btn" type="submit" name="submit" value="Add"/>
+						<input class="btn btn-primary" type="submit" name="submit" value="Save"/>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

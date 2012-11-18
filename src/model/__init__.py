@@ -9,6 +9,7 @@ import logging
 from model.base import Base
 from model.permission import Permission
 from model.person import Person
+from model.pages import Page
 
 def create_initialize_db(db_url, echo=False):
     engine = create_engine(db_url, echo=echo)

@@ -35,9 +35,29 @@ class Find_or_Create_by_Name(object):
     
     @classmethod
     def find_or_create(cls, session, name, **kwargs):
-        result = session.query(cls).filter_by(name=name).first()
+        query = session.query(cls).filter_by(name=name)
+        result = query.first()
         if result is None:
             result = cls(name=name, **kwargs)
+            session.add(result)
+        return result
+    
+
+class Find_or_Create_by_Name_On(object):
+    
+    @classmethod
+    def find_or_create(cls, session, name, on_date=None):
+        if on_date is None:
+            on_date = datetime.datetime.now()
+        result = session.query(cls).filter(and_(cls.name==name,
+                                                cls.valid_on(on_date=on_date))).first()
+        if result is None:
+            ''' check to see there is not one in the future '''
+            next_one = session.query(cls).filter(and_(cls.name==name,
+                                                      cls.valid_from > on_date)).first()
+            if next_one:
+                on_date = next_one.valid_from
+            result = cls(name=name, valid_from=on_date)
             session.add(result)
         return result
 
@@ -61,7 +81,7 @@ class ValidFromValidTo(Common):
     ref = Column(Integer, index=True)
     valid_from = Column(DateTime(), default=datetime.datetime.now)
     valid_to = Column(DateTime(), default=None)
-
+    
     @classmethod
     def valid_on(cls,on_date=None):
         if on_date is None:
@@ -106,4 +126,4 @@ class VersionExtension(SessionExtension):
         if isinstance(instance, ValidFromValidTo):
             instance.ref = Reference.next_ref(session, instance.__class__.__name__)
 
-            
+    

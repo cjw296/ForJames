@@ -4,7 +4,7 @@ Created on Nov 18, 2012
 @author: peterb
 '''
 import unittest
-import model_vfvt as model
+from model_vfvt import create_initialize_db, Person, Tag, Page
 import time
 
 
@@ -12,7 +12,7 @@ class Test(unittest.TestCase):
 
 
     def setUp(self):
-        self._Session, self._engine = model.create_initialize_db("sqlite://", echo=False)
+        self._Session, self._engine = create_initialize_db("sqlite://", echo=False)
         self.session = self._Session()
 
 
@@ -20,11 +20,20 @@ class Test(unittest.TestCase):
         self.session.close()
         self._engine.dispose()
         self._Session = self._engine = None
+        
+    
+    def test_person(self):
+            
+        print '------------ person'
+        
+        for person in self.session.query(Person).filter(Person.valid_on()):
+            print person.id, person.ref, person.email, person.valid_from, person.valid_to
+            for perm in person.permissions:
+                print '\t', perm.id, perm.ref, perm.name, perm.valid_from, perm.valid_to
 
 
     def testTag(self):
-        tag = model.Tag(name='foo')
-        self.session.add(tag)
+        tag = Tag.find_or_create(self.session,'foo')
         self.session.commit()
         time.sleep(0.5)
         tag.name = 'harry'
@@ -32,42 +41,53 @@ class Test(unittest.TestCase):
             
         print '------------ tag 1'
         
-        for tag in self.session.query(model.Tag):
+        for tag in self.session.query(Tag):
             print tag.id, tag.ref, tag.name, tag.valid_from, tag.valid_to
             
         print '------------ tag 2'
         
-        for tag in self.session.query(model.Tag).filter(model.Tag.valid_on()):
+        for tag in self.session.query(Tag).filter(Tag.valid_on()):
             print tag.id, tag.ref, tag.name, tag.valid_from, tag.valid_to
 
 
     def testPage(self):
-        tag = model.Tag(name='bar')
-        page = model.Page(title='foo')
-        self.session.add_all([page,tag])
+        tag = Tag.find_or_create(self.session,'bar')
+        page = Page(title='foo')
+        self.session.add(page)
         page.add_tag(tag)
         self.session.commit()
             
         print '------------ page'
         
-        for page in self.session.query(model.Page).filter(model.Page.valid_on()):
+        for page in self.session.query(Page).filter(Page.valid_on()):
             print page.id, page.ref, page.title, page.valid_from, page.valid_to
             for tag in page.tags:
                 print '\t', tag.id, tag.ref, tag.name, tag.valid_from, tag.valid_to
 
 
     def testOwner(self):
-        tag = model.Tag(name='bar')
-        page = model.Page(title='foo')
-        person = model.Person(email="spddo@me.com")
+        tag = Tag(name='bar')
+        page = Page(title='foo')
+        person = Person(email="spddo@me.com")
         self.session.add_all([page, tag, person])
         page.add_tag(tag)
         page.owner = person
         self.session.commit()
+        self.session.expire_all()
             
         print '------------ owner'
         
-        for page in self.session.query(model.Page).filter(model.Page.valid_on()):
+        for page in self.session.query(Page).filter(Page.valid_on()):
+            print page.id, page.ref, page.title, page.valid_from, page.valid_to, page.owner_ref
+            owner = page.owner
+            if owner:
+                print '\t', owner.id, owner.ref, owner.email, owner.valid_from, owner.valid_to
+        
+        page.owner = None
+        self.session.commit()
+        self.session.expire_all()
+        
+        for page in self.session.query(Page).filter(Page.valid_on()):
             print page.id, page.ref, page.title, page.valid_from, page.valid_to, page.owner_ref
             owner = page.owner
             if owner:

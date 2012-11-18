@@ -5,7 +5,7 @@ Created on Nov 14, 2012
 '''
 
 from sqlalchemy.types import Integer, String
-from sqlalchemy.schema import Column, Table, ForeignKey
+from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.orm import relationship
 from model.base import Base
 

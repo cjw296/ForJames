@@ -23,6 +23,9 @@ class Page(Base):
                          remote_side='person.c.id', 
                          back_populates="pages")
     
+    
+    tags = relationship('Tag', secondary="page_tag", back_populates="pages")
+    
     @property
     def label(self):
         return self.title.lower().replace(' ','_')

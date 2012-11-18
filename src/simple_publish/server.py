@@ -28,7 +28,7 @@ class PageHandler(tornado.web.RequestHandler):
         session = self.application.Session()
         try:
             page = None
-            pages = list(session.query(model.Page).all())
+            pages = list(session.query(model.Page).order_by(model.Page.title).all())
             if label:
                 for item in pages:
                     if item.label == label:
@@ -50,12 +50,16 @@ class PageEditHandler(tornado.web.RequestHandler):
         session = self.application.Session()
         try:
             page = None
-            pages = list(session.query(model.Page).all())
+            pages = list(session.query(model.Page).order_by(model.Page.title).all())
             if id:
                 page = session.query(model.Page).get(id)
             else:
                 page = pages[0]
-            self.render(self.tmpl, page=page, pages=pages, error=kwargs.get("error"))
+            self.render(self.tmpl, 
+                        page=page, 
+                        pages=pages, 
+                        error=kwargs.get("error"), 
+                        action=kwargs.get("action"))
         finally:
             session.close()
 
@@ -64,29 +68,47 @@ class PageEditHandler(tornado.web.RequestHandler):
         error = None
         session = self.application.Session()
         try:
-            if self.get_argument("submit") == "Add":
+            action = self.get_argument("submit")
+            if action == "Create":
                 page = model.Page(title=self.get_argument('title'),
                                   content=self.get_argument('content'))
                 session.add(page)
                 session.commit()
                 id = page.id
-            elif self.get_argument("submit") == "Save":
+            elif action == "Save":
                 page = session.query(model.Page).get(id)
                 page.title = self.get_argument('title')
                 page.content = self.get_argument('content')
                 session.commit()
-            elif self.get_argument("submit") == "Delete":
+            elif action == "Delete":
                 if session.query(model.Page).count() == 1:
                     raise Exception("Cannot delete last page!")
                 page = session.query(model.Page).get(id)
                 session.delete(page)
                 session.commit()
                 id = None
+            elif action == "Add":
+                page = session.query(model.Page).get(id)
+                page.tags.append(model.Tag.find_or_create(session, self.get_argument("tag")))
+                session.commit()
+            elif action == "Remove":
+                page = session.query(model.Page).get(id)
+                for tag_id in self.get_arguments("remove_tag_id"):
+                    tag = session.query(model.Tag).get(tag_id)
+                    page.tags.remove(tag)
+                session.commit()
         except Exception,ex:
             error = str(ex)
         finally:
             session.close()
-        self.get(id, *args, error=error)
+            
+        if error is None and action=="Add":
+            self.redirect("/page/%s/edit-html" % id)
+        elif error is None and action=="Delete":
+            page = session.query(model.Page).first()
+            self.redirect("/page/%s/edit-html" % page.id)
+        else:
+            self.get(id, *args, error=error, action=action)
         
 
 class Application(tornado.web.Application):

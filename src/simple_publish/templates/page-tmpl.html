@@ -3,13 +3,17 @@
 <head>
 	<meta charset="utf-8" />
 	<title>{{ page.title }}</title>
+	<link rel="shortcut icon" href="{{ static_url('logo.png') }}" type="image/x-icon" />
 	<link href="{{ static_url('libs/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
 </head>
 <body>
 	<div class="container">
 	
-		<div class="hero-unit">
-     		<h1>Hello, world!</h1>
+		<div class="hero-unit" style="margin-top:1em;">
+     		<h1>
+     			<img src="{{ static_url('rocketship.png') }}" style="width:10%;height:10%;" />
+     			Hello, world!
+     		</h1>
       	</div>
 		
 		<div class="row-fluid">

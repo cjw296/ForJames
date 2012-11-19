@@ -65,6 +65,18 @@ class Test(unittest.TestCase):
                 print '\t', tag.id, tag.ref, tag.name, tag.valid_from, tag.valid_to
 
 
+    def testChange(self):
+        tag = Tag.find_or_create(self.session,'bar')
+        self.session.commit()
+        
+        print '------------ change'
+        print tag.id, tag.ref, tag.name, tag.valid_from, tag.valid_to
+        
+        tag.name = 'foo'
+        self.session.commit()
+        print tag.id, tag.ref, tag.name, tag.valid_from, tag.valid_to
+        
+
     def testOwner(self):
         tag = Tag(name='bar')
         page = Page(title='foo')

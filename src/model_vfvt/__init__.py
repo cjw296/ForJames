@@ -29,18 +29,19 @@ def create_initialize_db(db_url, echo=False):
     Session = sessionmaker(engine,extension=[VersionExtension()])
     session = Session()
     try:
-        permissions = [Permission(name=name) for name in Permission.ROLES]
-        session.add_all(permissions)
-        
-        admin = Person(email="admin",password="admin")       
-        user = Person(email="user",password="user")
-        
-        session.add_all([admin, user])
-        
-        admin.permissions.append(permissions[0])
-        admin.permissions.append(permissions[1])
-        user.permissions.append(permissions[1])
-        session.commit()
+        if Permission.by_ref(session, 1) is None:
+            permissions = [Permission(name=name) for name in Permission.ROLES]
+            session.add_all(permissions)
+            
+            admin = Person(email="admin",password="admin")       
+            user = Person(email="user",password="user")
+            
+            session.add_all([admin, user])
+            
+            admin.permissions.append(permissions[0])
+            admin.permissions.append(permissions[1])
+            user.permissions.append(permissions[1])
+            session.commit()
     except IntegrityError:
         pass
     except Exception, ex:

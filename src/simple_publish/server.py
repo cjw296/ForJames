@@ -57,14 +57,13 @@ class PageEditHandler(tornado.web.RequestHandler):
     
     tmpl = "page-edit-tmpl.html"
     
-    def get(self, id, *args, **kwargs):
-        logging.info("page %s", id)
+    def get(self, ref, *args, **kwargs):
         session = self.application.Session()
         try:
             page = None
             pages = list(model.Page.query(session).order_by(model.Page.title).all())
-            if id:
-                page = model.Page.by_ref(session, id)
+            if ref:
+                page = model.Page.by_ref(session, ref)
             else:
                 page = pages[0]
             self.render(self.tmpl, 
@@ -76,7 +75,7 @@ class PageEditHandler(tornado.web.RequestHandler):
             session.close()
 
 
-    def post(self, id, *args):
+    def post(self, ref, *args):
         error = None
         session = self.application.Session()
         try:
@@ -86,25 +85,24 @@ class PageEditHandler(tornado.web.RequestHandler):
                                   content=self.get_argument('content'))
                 session.add(page)
                 session.commit()
-                id = page.ref
+                ref = page.ref
             elif action == "Save":
-                page = model.Page.by_ref(session, id)
+                page = model.Page.by_ref(session, ref)
                 page.title = self.get_argument('title')
                 page.content = self.get_argument('content')
                 session.commit()
             elif action == "Delete":
                 if session.query(model.Page).count() == 1:
                     raise Exception("Cannot delete last page!")
-                page = model.Page.by_ref(session, id)
+                page = model.Page.by_ref(session, ref)
                 session.delete(page)
                 session.commit()
-                id = None
             elif action == "Add":
-                page = model.Page.by_ref(session, id)
+                page = model.Page.by_ref(session, ref)
                 page.tags.append(model.Tag.find_or_create(session, self.get_argument("tag")))
                 session.commit()
             elif action == "Remove":
-                page = model.Page.by_ref(session, id)
+                page = model.Page.by_ref(session, ref)
                 for tag_id in self.get_arguments("remove_tag_id"):
                     tag = model.Tag.by_ref(session, tag_id)
                     page.tags.remove(tag)
@@ -115,12 +113,12 @@ class PageEditHandler(tornado.web.RequestHandler):
             session.close()
             
         if error is None and action=="Create":
-            self.redirect("/page/%s/edit-html" % id)
+            self.redirect("/page/%s/edit-html" % ref)
         elif error is None and action=="Delete":
             page = session.query(model.Page).first()
             self.redirect("/page/%s/edit-html" % page.ref)
         else:
-            self.get(id, *args, error=error, action=action)
+            self.get(ref, *args, error=error, action=action)
         
 
 class Application(tornado.web.Application):

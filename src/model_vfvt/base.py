@@ -114,6 +114,7 @@ class ValidFromValidTo(Common):
         
     
 class VersionExtension(SessionExtension):
+    
     def before_flush(self, session, flush_context, instances):
         for instance in session.dirty:
             if not isinstance(instance, ValidFromValidTo):
@@ -132,10 +133,8 @@ class VersionExtension(SessionExtension):
 
     
     def after_attach(self, session, instance):  
-        if isinstance(instance, ValidFromValidTo):
+        if isinstance(instance, ValidFromValidTo) and instance.ref is None:
             instance.ref = Reference.next_ref(session, instance.__class__.__name__)
-
-
 
 
 class _M2MCollection_():

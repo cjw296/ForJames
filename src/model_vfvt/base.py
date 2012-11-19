@@ -11,7 +11,7 @@ from sqlalchemy.types import DateTime, Integer, String
 from sqlalchemy.sql.expression import and_, or_
 from sqlalchemy.orm.deprecated_interfaces import SessionExtension
 from sqlalchemy.orm import attributes
-from sqlalchemy.orm.session import make_transient
+from sqlalchemy.orm.session import make_transient, object_session
 
 
 Base = declarative_base()
@@ -104,6 +104,16 @@ class ValidFromValidTo(Common):
         self.id = None
     
     
+    @classmethod
+    def by_ref(cls, session, ref, on_date=None):
+        return session.query(cls).filter(and_(cls.ref==ref, cls.valid_on(on_date))).first()
+    
+    @classmethod
+    def query(cls, session, on_date=None):
+        return session.query(cls).filter(cls.valid_on(on_date))
+        
+    
+    
 class VersionExtension(SessionExtension):
     def before_flush(self, session, flush_context, instances):
         for instance in session.dirty:
@@ -126,4 +136,42 @@ class VersionExtension(SessionExtension):
         if isinstance(instance, ValidFromValidTo):
             instance.ref = Reference.next_ref(session, instance.__class__.__name__)
 
+
+
+
+class _M2MCollection_():
     
+    def __init__(self, item, related_cls, relation_cls):
+        self.item = item
+        self.session = object_session(item)
+        self.related_cls = related_cls
+        self.relation_cls = relation_cls
+        
+    
+    def __iter__(self):
+        subselect = self.session.query(self.relation_cls.to_ref).filter(and_(self.relation_cls.from_ref==self.item.ref,
+                                                                              self.relation_cls.valid_on()))
+        query = self.session.query(self.related_cls).filter(and_(self.related_cls.ref.in_(subselect),
+                                                                 self.related_cls.valid_on()))
+        return iter(query)
+    
+    
+    ''' Tag support '''
+    def append(self, obj, on_date=None):
+        if self.item.ref is None or obj.ref is None:
+            raise Exception("Add to relation on versioned object before adding to session")
+        if on_date is None:
+            on_date = datetime.datetime.now()
+        self.session.add(self.relation_cls(from_ref=self.item.ref, to_ref=obj.ref, valid_from=on_date))
+            
+            
+    def remove(self, obj, on_date=None):
+        if self.item.ref is None or obj.ref is None:
+            raise Exception("Remove from relation on versioned object before adding to session")
+        if on_date is None:
+            on_date = datetime.datetime.now()
+        result = self.session.query(self.relation_cls).filter(and_(self.relation_cls.from_ref==self.item.ref,
+                                                                   self.relation_cls.to_ref==obj.ref,
+                                                                   self.relation_cls.valid_on())).first()
+        if result is not None:
+            result.valid_to = on_date

@@ -7,10 +7,9 @@ Created on Nov 18, 2012
 from sqlalchemy.types import Integer, String
 from sqlalchemy.schema import Column, Table, ForeignKey
 from sqlalchemy.orm import relationship
-from model.base import Base
+from model.base import Base, Common
 
-class Tag(Base):
-    __tablename__ = "tag"
+class Tag(Base, Common):
     
     id = Column(Integer, primary_key=True)
     name = Column(String(80), unique=True, nullable=False)

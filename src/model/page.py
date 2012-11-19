@@ -7,11 +7,10 @@ Created on Nov 14, 2012
 from sqlalchemy.types import Integer, String
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.orm import relationship
-from model.base import Base
+from model.base import Base, Common
 
 
-class Page(Base):
-    __tablename__ = "page"
+class Page(Base, Common):
     
     id = Column(Integer, primary_key=True)
     title = Column(String(80), unique=True, nullable=False)

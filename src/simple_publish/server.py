@@ -9,11 +9,11 @@ import tornado.options
 import tornado.ioloop
 import tornado.web
 
-import model
+import model_vfvt as model
 import logging
 
 define("port", 8080, type=int, help="server port number (default: 8080)")
-define("db_url", 'sqlite:///simple_publish.db', help="sqlalchemy db url")
+define("db_url", 'sqlite:///simple_publish_vfvt.db', help="sqlalchemy db url")
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -28,7 +28,7 @@ class PageHandler(tornado.web.RequestHandler):
         session = self.application.Session()
         try:
             page = None
-            pages = list(session.query(model.Page).order_by(model.Page.title).all())
+            pages = list(model.Page.query(session).order_by(model.Page.title).all())
             if label:
                 for item in pages:
                     if item.label == label:
@@ -50,9 +50,9 @@ class PageEditHandler(tornado.web.RequestHandler):
         session = self.application.Session()
         try:
             page = None
-            pages = list(session.query(model.Page).order_by(model.Page.title).all())
+            pages = list(model.Page.query(session).order_by(model.Page.title).all())
             if id:
-                page = session.query(model.Page).get(id)
+                page = model.Page.by_ref(session, id)
             else:
                 page = pages[0]
             self.render(self.tmpl, 
@@ -74,27 +74,27 @@ class PageEditHandler(tornado.web.RequestHandler):
                                   content=self.get_argument('content'))
                 session.add(page)
                 session.commit()
-                id = page.id
+                id = page.ref
             elif action == "Save":
-                page = session.query(model.Page).get(id)
+                page = model.Page.by_ref(session, id)
                 page.title = self.get_argument('title')
                 page.content = self.get_argument('content')
                 session.commit()
             elif action == "Delete":
                 if session.query(model.Page).count() == 1:
                     raise Exception("Cannot delete last page!")
-                page = session.query(model.Page).get(id)
+                page = model.Page.by_ref(session, id)
                 session.delete(page)
                 session.commit()
                 id = None
             elif action == "Add":
-                page = session.query(model.Page).get(id)
+                page = model.Page.by_ref(session, id)
                 page.tags.append(model.Tag.find_or_create(session, self.get_argument("tag")))
                 session.commit()
             elif action == "Remove":
-                page = session.query(model.Page).get(id)
+                page = model.Page.by_ref(session, id)
                 for tag_id in self.get_arguments("remove_tag_id"):
-                    tag = session.query(model.Tag).get(tag_id)
+                    tag = model.Tag.by_ref(session, tag_id)
                     page.tags.remove(tag)
                 session.commit()
         except Exception,ex:
@@ -102,11 +102,11 @@ class PageEditHandler(tornado.web.RequestHandler):
         finally:
             session.close()
             
-        if error is None and action=="Add":
+        if error is None and action=="Create":
             self.redirect("/page/%s/edit-html" % id)
         elif error is None and action=="Delete":
             page = session.query(model.Page).first()
-            self.redirect("/page/%s/edit-html" % page.id)
+            self.redirect("/page/%s/edit-html" % page.ref)
         else:
             self.get(id, *args, error=error, action=action)
         
@@ -118,7 +118,7 @@ class Application(tornado.web.Application):
         self.Session, self.engine = model.create_initialize_db(options.db_url)
         session = self.Session()
         try:
-            page = session.query(model.Page).first()
+            page = model.Page.query(session).first()
             if page is None:
                 session.add(model.Page(title="Index",content="Sample Page."))
                 session.commit()

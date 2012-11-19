@@ -37,9 +37,9 @@ def create_initialize_db(db_url, echo=False):
         
         session.add_all([admin, user])
         
-        admin.add_permission(permissions[0])
-        admin.add_permission(permissions[1])
-        user.add_permission(permissions[1])
+        admin.permissions.append(permissions[0])
+        admin.permissions.append(permissions[1])
+        user.permissions.append(permissions[1])
         session.commit()
     except IntegrityError:
         pass

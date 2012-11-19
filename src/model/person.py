@@ -7,12 +7,10 @@ Created on Nov 10, 2012
 from sqlalchemy.types import Integer, String
 from sqlalchemy.schema import Column, Table, ForeignKey
 from sqlalchemy.orm import relationship
-from model.base import Base
+from model.base import Base, Common
 
 
-class Person(Base):
-    __tablename__ = "person"
-    _list_view_ = ["id","email"]
+class Person(Base, Common):
     
     id = Column(Integer, primary_key=True)
     email = Column(String(80), unique=True, nullable=False)

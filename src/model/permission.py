@@ -6,7 +6,7 @@ Created on Nov 10, 2012
 
 from sqlalchemy.types import Integer, String
 from sqlalchemy.schema import Column
-from model.base import Base
+from model.base import Base, Common
 
 ADMIN_ROLE = u'admin'
 USER_ROLE = u'user'
@@ -15,8 +15,7 @@ AUTOMATIC_ROLE = 'automatic'
 REMOTE_ROLE = "remote"
 
 
-class Permission(Base):
-    __tablename__ = "permission"
+class Permission(Base, Common):
     
     ROLES = [ADMIN_ROLE, USER_ROLE, DEV_ROLE, AUTOMATIC_ROLE, REMOTE_ROLE]
 

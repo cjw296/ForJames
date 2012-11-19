@@ -54,7 +54,7 @@ class Test(unittest.TestCase):
         tag = Tag.find_or_create(self.session,'bar')
         page = Page(title='foo')
         self.session.add(page)
-        page.add_tag(tag)
+        page.tags.append(tag)
         self.session.commit()
             
         print '------------ page'
@@ -70,7 +70,7 @@ class Test(unittest.TestCase):
         page = Page(title='foo')
         person = Person(email="spddo@me.com")
         self.session.add_all([page, tag, person])
-        page.add_tag(tag)
+        page.tags.append(tag)
         page.owner = person
         self.session.commit()
         self.session.expire_all()

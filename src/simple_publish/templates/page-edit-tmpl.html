@@ -15,7 +15,7 @@
 				<h4>Pages</h4>
 				<ul class="nav nav-pills nav-stacked" style="overflow:auto;max-height:400px;">{% for item in pages %}
 					<li {% if item==page %}class="active"{% end %}>
-						<a href="/page/{{ item.id }}/edit.html">{{ item.title }}</a>
+						<a href="/page/{{ item.ref }}/edit.html">{{ item.title }}</a>
 					</li>{% end %}
 				</ul>				
 				<a href="/page/{{ page.label }}" class="btn btn-small">View</a>		
@@ -63,7 +63,7 @@
 					</div>
 					<div>{% for tag in page.tags %}
 						<label class="checkbox">
-							<input type="checkbox" name="remove_tag_id" value="{{ tag.id }}" /> {{ tag.name }}
+							<input type="checkbox" name="remove_tag_id" value="{{ tag.ref }}" /> {{ tag.name }}
 						</label>{% end %}
 						<input class="btn" type="submit" name="submit" value="Remove"/>
 					</div>

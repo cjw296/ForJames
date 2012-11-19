@@ -24,10 +24,52 @@ import tornado.web
 import model_vfvt as model
 import logging
 import time
+from sqlalchemy.sql.expression import and_
 
 define("port", 8080, type=int, help="server port number (default: 8080)")
 define("db_url", 'sqlite:///simple_publish_vfvt.db', help="sqlalchemy db url")
 
+COOKIE_NAME = "simple_publish_session"
+
+class AccessHandler(tornado.web.RequestHandler):
+    '''
+        Given a GET of no action Then renders login.html.
+        Given a GET with action logout Then clear cookie and redirect to /.
+        Given a POST will authenticate email, password with control and set cookie and redirect to next_url.
+    '''
+    
+    def get(self, error=None):
+        if self.get_argument("action", None) == 'logout':
+            self.clear_cookie(COOKIE_NAME)
+            self.redirect('/')
+            return
+        email = self.get_argument("email",default=None)
+        self.render("login.html", email=email, error=error)
+        
+                
+    def post(self):
+        session = self.application.Session()
+        try:
+            email = self.get_argument("email")
+            password = self.get_argument("password")
+            person = model.Person.query(session).filter(and_(model.Person.email==email,
+                                                             model.Person.password==password)).first()
+            if person is None:
+                raise Exception("Email or password incorrect!")
+            
+            self.set_secure_cookie(COOKIE_NAME, str(person.ref))
+            
+            next_url = self.get_argument('next', '/')
+            self.redirect(next_url)
+        except Exception, ex:
+            self.get(error=str(ex))
+        finally:
+            session.close()
+            
+    @classmethod
+    def get_auth_user_from_cookie(cls, handler):
+        return handler.get_secure_cookie(COOKIE_NAME)
+            
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
@@ -59,6 +101,11 @@ class PageEditHandler(tornado.web.RequestHandler):
     
     tmpl = "page-edit-tmpl.html"
     
+    def get_current_user(self):
+        return AccessHandler.get_auth_user_from_cookie(self)
+    
+    
+    @tornado.web.authenticated
     def get(self, ref, *args, **kwargs):
         session = self.application.Session()
         try:
@@ -77,6 +124,7 @@ class PageEditHandler(tornado.web.RequestHandler):
             session.close()
 
 
+    @tornado.web.authenticated
     def post(self, ref, *args):
         error = None
         session = self.application.Session()
@@ -162,10 +210,13 @@ def main():
     tornado.options.parse_command_line()
     application = Application([
         (r"/", MainHandler),
+        (r"/login", AccessHandler),
         (r"/page/(.*)/edit.html", PageEditHandler),
         (r"/page/(.*)", PageHandler),
     ], static_path=resource_filename("web","www/static"), 
        template_path=resource_filename("simple_publish","templates"),
+       cookie_secret="it_was_a_dark_and_stormy_night_for_publishing",
+       login_url="/login",
        debug=True)
     application.listen(options.port)
     logging.info('listening on port %s', options.port)

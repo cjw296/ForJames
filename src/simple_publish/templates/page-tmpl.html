@@ -28,8 +28,9 @@
 	</div>
 	
 	
-	<footer>
-		<small>published: {{ on_date }}</small>
+	<footer style="margin-top:4em;text-align:center;">
+		&copy; Hello Corp. 2012 <small>site published:
+		<strong>{{ on_date.strftime('%b %d, %Y at %H:%m') + on_date.strftime('%p').lower() }}</strong></small>
 	</footer>
 	</div>
 </body>

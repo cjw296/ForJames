@@ -150,7 +150,8 @@ class Application(tornado.web.Application):
             page = model.Page.query(session).first()
             if page is None:
                 session.add(model.Page(title="Index",content="Sample Page."))
-                time.sleep(0.1)
+                session.commit()
+                time.sleep(0.2)
                 model.Publication.publish(session)
                 session.commit()
         finally:

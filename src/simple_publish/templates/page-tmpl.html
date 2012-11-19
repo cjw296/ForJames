@@ -8,30 +8,36 @@
 <body>
 	<div class="container">
 	
-	<div class="row-fluid">
-		<div class="span10 offset2"><h1>{{ page.title }}</h1></div>
-	</div>
-	
-	<div class="row-fluid">
-		<div class="span2">
-			<ul class="nav nav-pills nav-stacked">{% for item in pages %}
-				<li {% if item==page %}class="active"{% end %}>
-					<a href="/page/{{ item.label }}">{{ item.title }}</a>
-				</li>{% end %}
-			</ul>
-			<a href="/page/{{ page.ref }}/edit.html" class="btn btn-small">Edit</a>
+		<div class="hero-unit">
+     		<h1>Hello, world!</h1>
+      	</div>
+		
+		<div class="row-fluid">
+			<div class="span2">
+				<ul class="nav nav-pills nav-stacked">{% for item in pages %}
+					<li {% if item==page %}class="active"{% end %}>
+						<a href="/page/{{ item.label }}">{{ item.title }}</a>
+					</li>{% end %}
+				</ul>
+			</div>
+			<div class="span8">
+				<h2>{{ page.title }}</h2>
+				<p class="lead">{%raw page.content %}</p>
+			</div>
+			<div class="span2">
+				<p>{% for tag in page.tags.on_date(on_date) %}
+					<span class="label label-info">{{ tag.name }}</span> {% end %}
+				</p>
+			</div>
 		</div>
-		<div class="span10">
-			<p>{%raw page.content %}</p>
-			<p>{% for tag in page.tags.on_date(on_date) %}<span class="label label-info">{{ tag.name }}</span> {% end %}</p>
-		</div>
-	</div>
 	
 	
-	<footer style="margin-top:4em;text-align:center;">
-		&copy; Hello Corp. 2012 <small>site published:
-		<strong>{{ on_date.strftime('%b %d, %Y at %H:%m') + on_date.strftime('%p').lower() }}</strong></small>
-	</footer>
+		<footer style="margin-top:4em;text-align:center;">
+			&copy; Hello Corp. 2012 <small class="muted">site published:
+			<strong>{{ on_date.strftime('%b %d, %Y at %H:%m') + on_date.strftime('%p').lower() }}</strong></small>
+			<a href="/page/{{ page.ref }}/edit.html" class="btn btn-mini">Edit</a>
+		</footer>
+	
 	</div>
 </body>
 </html>

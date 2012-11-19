@@ -15,6 +15,7 @@ class Page(Base, Common):
     id = Column(Integer, primary_key=True)
     title = Column(String(80), unique=True, nullable=False)
     content = Column(String(80))
+    sequence = Column(Integer, default=0)
 
     ''' one to many relation ''' 
     owner_id = Column(Integer, ForeignKey('person.id'))

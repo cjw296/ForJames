@@ -41,7 +41,7 @@ class PageHandler(tornado.web.RequestHandler):
         try:
             on_date = model.Publication.publication_date(session)
             page = None
-            pages = list(model.Page.query(session, on_date).order_by(model.Page.title).all())
+            pages = list(model.Page.query(session, on_date).order_by(model.Page.sequence).all())
             if label:
                 for item in pages:
                     if item.label == label:
@@ -62,7 +62,7 @@ class PageEditHandler(tornado.web.RequestHandler):
         session = self.application.Session()
         try:
             page = None
-            pages = list(model.Page.query(session).order_by(model.Page.title).all())
+            pages = list(model.Page.query(session).order_by(model.Page.sequence).all())
             if ref:
                 page = model.Page.by_ref(session, ref)
             else:
@@ -115,6 +115,12 @@ class PageEditHandler(tornado.web.RequestHandler):
                 
             elif action == "Publish":
                 model.Publication.publish(session)
+                session.commit()
+            
+            elif action == "Save Order":
+                sequence = [int(i) for i in self.get_argument('page_order').split(',')]
+                for i,sequence_ref in enumerate(sequence):
+                    model.Page.by_ref(session, sequence_ref).sequence=i
                 session.commit()
                 
         except Exception,ex:

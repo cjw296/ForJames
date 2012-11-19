@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+{% import json %}<!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
@@ -13,14 +13,17 @@
 		<div class="row-fluid">
 			<div class="span2">
 				<h4>Pages</h4>
-				<ul class="nav nav-pills nav-stacked" style="overflow:auto;max-height:400px;">{% for item in pages %}
-					<li {% if item==page %}class="active"{% end %}>
-						<a href="/page/{{ item.ref }}/edit.html">{{ item.title }}</a>
-					</li>{% end %}
+				<ul class="nav nav-pills nav-stacked" style="overflow:auto;max-height:400px;" data-bind="sortable: pages">
+					<li data-bind="css:{active: ref==$root.page_ref()}">
+						<a data-bind="text:title,attr:{href:'/page/' + ref + '/edit.html'}"></a>
+					</li>
 				</ul>		
-				<form method="post" class="form-horizontal">	
+				<form method="post" class="form">
+					<input type="hidden" name="page_order" data-bind="value:page_order" />
+					<input class="btn" type="submit" name="submit" value="Save Order" />
+					<hr/>
 					<a href="/page/" class="btn">View</a>	
-					<input class="btn btn-warning" type="submit" name="submit" value="Publish"/>
+					<input class="btn btn-warning" type="submit" name="submit" value="Publish" />
 				</form>
 			</div>
 			<div class="span6">
@@ -73,5 +76,26 @@
 			</div>
 		</div>
 	</div>
+	<script type="text/javascript" src="{{ static_url('libs/jquery.js') }}"></script>
+	<script type="text/javascript" src="{{ static_url('libs/knockout/knockout-2.2.0.js') }}"></script>
+	<script type="text/javascript" src="{{ static_url('libs/jquery-ui-1.9.1/js/jquery-ui-1.9.1.custom.min.js') }}"></script>
+	<script type="text/javascript" src="{{ static_url('libs/knockout/sortable/knockout-sortable.min.js') }}"></script>
+	<script type="text/javascript">
+$(function(){
+	function ViewModel() {
+		this.page_ref = ko.observable({{ page.ref }});
+		this.pages = ko.observableArray({%raw json.dumps([dict(ref=item.ref,title=item.title) for item in pages]) %});
+		this.page_order = ko.computed(function() {
+			var result=[];
+			for(var i=0; i< this.pages().length; i++){
+				result.push(this.pages()[i].ref);
+			}
+	        return result.join(',');
+	    }, this);
+	};
+	
+	ko.applyBindings(new ViewModel());
+});
+	</script>
 </body>
 </html>

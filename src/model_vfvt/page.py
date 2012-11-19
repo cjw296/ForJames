@@ -17,6 +17,7 @@ class Page(Base, ValidFromValidTo):
     
     title = Column(String(80), nullable=False)
     content = Column(Text())
+    sequence = Column(Integer, default=0)
     
     @property
     def label(self):

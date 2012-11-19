@@ -17,9 +17,11 @@
 					<li {% if item==page %}class="active"{% end %}>
 						<a href="/page/{{ item.ref }}/edit.html">{{ item.title }}</a>
 					</li>{% end %}
-				</ul>				
-				<a href="/page/{{ page.label }}" class="btn btn-small">View</a>		
-				<a href="/page/{{ page.label }}" class="btn btn-small">Tag Editor</a>
+				</ul>		
+				<form method="post" class="form-horizontal">	
+					<a href="/page/{{ page.label }}" class="btn">View</a>	
+					<input class="btn btn-warning" type="submit" name="submit" value="Publish"/>
+				</form>
 			</div>
 			<div class="span6">
 				<h4>Page</h4>

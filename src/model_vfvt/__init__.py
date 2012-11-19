@@ -13,6 +13,8 @@ from model_vfvt.tag import Tag
 from model_vfvt.page import Page, PageTag
 from model_vfvt.permission import Permission
 from model_vfvt.person import Person, PersonPermission
+from model_vfvt.publication import Publication
+
 
 Index("tag_ref",Tag.ref,Tag.valid_from,Tag.valid_to)
 Index("page_ref",Page.ref,Page.valid_from,Page.valid_to)

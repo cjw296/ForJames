@@ -147,10 +147,14 @@ class _M2MCollection_():
         
     
     def __iter__(self):
+        return self.on_date()
+        
+        
+    def on_date(self, on_date=None):
         subselect = self.session.query(self.relation_cls.to_ref).filter(and_(self.relation_cls.from_ref==self.item.ref,
-                                                                              self.relation_cls.valid_on()))
+                                                                              self.relation_cls.valid_on(on_date)))
         query = self.session.query(self.related_cls).filter(and_(self.related_cls.ref.in_(subselect),
-                                                                 self.related_cls.valid_on()))
+                                                                 self.related_cls.valid_on(on_date)))
         return iter(query)
     
     

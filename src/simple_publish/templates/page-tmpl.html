@@ -23,9 +23,14 @@
 		</div>
 		<div class="span10">
 			<p>{%raw page.content %}</p>
+			<p>{% for tag in page.tags.on_date(on_date) %}<span class="label label-info">{{ tag.name }}</span> {% end %}</p>
 		</div>
 	</div>
 	
+	
+	<footer>
+		<small>published: {{ on_date }}</small>
+	</footer>
 	</div>
 </body>
 </html>

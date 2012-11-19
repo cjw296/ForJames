@@ -4,8 +4,7 @@ Created on Nov 18, 2012
 @author: peterb
 '''
 import unittest
-from model_vfvt import create_initialize_db, Person, Tag, Page
-import time
+from model_vfvt import create_initialize_db, Person, Tag, Page, Publication
 
 
 class Test(unittest.TestCase):
@@ -22,6 +21,15 @@ class Test(unittest.TestCase):
         self._Session = self._engine = None
         
     
+    def test_publication(self):
+        dt = Publication.publish(self.session).on_date
+        self.session.commit()
+        self.assertEquals(dt, Publication.publication_date(self.session))
+        dt = Publication.publish(self.session).on_date
+        self.session.commit()
+        self.assertEquals(dt, Publication.publication_date(self.session))
+        
+    
     def test_person(self):
             
         print '------------ person'
@@ -35,7 +43,6 @@ class Test(unittest.TestCase):
     def testTag(self):
         tag = Tag.find_or_create(self.session,'foo')
         self.session.commit()
-        time.sleep(0.5)
         tag.name = 'harry'
         self.session.commit()
             

@@ -23,6 +23,7 @@ import tornado.web
 
 import model_vfvt as model
 import logging
+import time
 
 define("port", 8080, type=int, help="server port number (default: 8080)")
 define("db_url", 'sqlite:///simple_publish_vfvt.db', help="sqlalchemy db url")
@@ -149,6 +150,7 @@ class Application(tornado.web.Application):
             page = model.Page.query(session).first()
             if page is None:
                 session.add(model.Page(title="Index",content="Sample Page."))
+                time.sleep(0.1)
                 model.Publication.publish(session)
                 session.commit()
         finally:

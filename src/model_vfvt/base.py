@@ -82,14 +82,6 @@ class ValidFromValidTo(Common):
     valid_from = Column(DateTime(), default=datetime.datetime.now)
     valid_to = Column(DateTime(), default=None)
     
-    @classmethod
-    def valid_on(cls,on_date=None):
-        if on_date is None:
-            on_date=datetime.datetime.now()
-        return and_(cls.valid_from <= on_date,
-                    or_(cls.valid_to > on_date,
-                        cls.valid_to == None))
-    
 
     def new_version(self, session):
         # make us transient (removes persistent
@@ -111,8 +103,15 @@ class ValidFromValidTo(Common):
     @classmethod
     def query(cls, session, on_date=None):
         return session.query(cls).filter(cls.valid_on(on_date))
-        
     
+    @classmethod
+    def valid_on(cls,on_date=None):
+        if on_date is None:
+            on_date=datetime.datetime.now()
+        return and_(cls.valid_from <= on_date,
+                    or_(cls.valid_to > on_date,
+                        cls.valid_to == None))
+        
     
 class VersionExtension(SessionExtension):
     def before_flush(self, session, flush_context, instances):

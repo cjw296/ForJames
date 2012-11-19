@@ -1,4 +1,16 @@
 '''
+The idea here was to create a model without version and then build a model
+with valid_from valid_to so that we can see what the data looked like
+at any particular time. This then allows us to have a publishing date
+and leave the view fixed at that date but continue to edit the data.
+
+Then publishing is changing the view date. If we mess up, just go back to
+the old date....
+
+Note that this model is slow - but we will have pages in memory.
+
+if works the same with model or model_vfvt
+
 Created on Nov 17, 2012
 
 @author: peterb

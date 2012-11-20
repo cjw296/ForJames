@@ -11,6 +11,10 @@
 	<h3 data-bind="text:title"></h3>
 	<div data-bind="text:content"></div>
 	
+	<div class="container" style="margin-top:1em;font-size:small;">
+		<pre data-bind="text: ko.toJSON($root.content, null, 2)"></pre>
+	</div>
+	
 	<script type="text/javascript" src="static/libs/jquery.js"></script>
 	<script type="text/javascript" src="static/libs/knockout/knockout-2.2.0.js"></script>
 	<script type="text/javascript" src="static/libs/knockout/knockout.validation.js"></script>

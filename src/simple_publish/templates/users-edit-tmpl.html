@@ -25,7 +25,7 @@ table .ref_fld{
 	Users
 	<div class="nav pull-right">
 	<button class="btn btn-warning">Save</button>
-	<button class="btn">Add User</button>
+	<button class="btn" data-bind="click:$root.add_person">Add User</button>
 	</div>
 </legend>
 <table class="table table-bordered table-condensed">
@@ -34,28 +34,92 @@ table .ref_fld{
 			<th class="ref_fld">#</th>
 			<th>email</th>
 			<th>password</th>
-			{% for perm in permissions %}
-				<th>{{perm.name}}
-			{% end %}
+			<!-- ko foreach:permissions -->
+				<th data-bind="text:name"></th>
+			<!-- /ko -->
 			<th></th>
 	</thead>
-	<tbody>
-		{% for person in people %}
+	<tbody data-bind="foreach:people">
 		<tr>
-			<td class="ref_fld">{{ person.ref }}</td>
-			<td class="table-edit-cell"><input class="table-edit-cell-fld" type="text" name="email" value="{{person.email}}" /></td>
-			<td class="table-edit-cell"><input class="table-edit-cell-fld" type="text" name="password" value="{{person.password}}" /></td>
-			{% for perm in permissions %}
-			<td style="text-align:center;">
-				<input type="checkbox" name="permission" value="{{perm.id}}" 
-					{%if perm in person.permissions%} checked="checked" {% end %} />
+			<td class="ref_fld">
+				<span data-bind="text:$index()+1,css:{'badge-important':$root.is_deleted($data), 
+													  'badge':$root.is_deleted($data)}">8</span>
 			</td>
-			{% end %}
+			<td class="table-edit-cell">
+				<input class="table-edit-cell-fld" type="text" name="email" data-bind="value:email" />
+			</td>
+			<td class="table-edit-cell">
+				<input class="table-edit-cell-fld" type="text" name="password" data-bind="value:password" />
+			</td>
+			<!-- ko foreach:$root.permissions -->
+			<td style="text-align:center;">
+				<input type="checkbox" name="permission" data-bind="attr:{value:ref},checked:$parent.permissions" />
+			</td>
+			<!-- /ko -->
 			<td width="16">
-				<button class="btn btn-small btn-danger">Delete</button>
+				<button class="btn btn-small btn-danger" 
+						data-bind="click:$root.wrap('remove_item',$data, $parent.people)" 
+						title="Remove user">
+			  		<i class="icon-white" data-bind="css:{'icon-trash': !$root.is_deleted($data), 
+			  											  'icon-minus-sign': $root.is_deleted($data)}" ></i>
+			  	</button>
 			</td>
 		</tr>
-		{% end %}
 	</tbody>
 </table>
+<div class="container" style="margin-top:1em;font-size:small;">
+	<pre data-bind="text: ko.toJSON($root.people, null, 2)"></pre>
+</div>
+{% end %}
+{% block footer %}
+	<script type="text/javascript" src="{{ static_url('libs/jquery.js') }}"></script>
+	<script type="text/javascript" src="{{ static_url('libs/knockout/knockout-2.2.0.js') }}"></script>
+	<script type="text/javascript" src="{{ static_url('libs/knockout/knockout.mapping-2.3.3.js') }}"></script>
+	<script type="text/javascript" src="{{ static_url('libs/jquery-ui-1.9.1/js/jquery-ui-1.9.1.custom.min.js') }}"></script>
+	<script type="text/javascript" src="{{ static_url('libs/knockout/sortable/knockout-sortable.min.js') }}"></script>
+	<script type="text/javascript">
+$(function(){
+	
+	function ViewModel() {
+		this.people = ko.mapping.fromJS({%raw json.dumps([dict(ref=item.ref,
+															   email=item.email,
+															   password=item.password,
+															   permissions=[str(perm.ref) for perm in item.permissions]) for item in people]) %});
+		this.permissions = ko.mapping.fromJS({%raw json.dumps([dict(ref=item.ref,name=item.name) for item in permissions]) %});
+	};
+	
+	ViewModel.prototype.add_person = function(){
+		this.people.push(ko.mapping.fromJS({ref:null, email:'',password:'',permissions:[]}));
+	};
+
+	ViewModel.prototype.remove_item = function(item, container){
+        if(item.ref()){
+            item.ref(item.ref() * -1);
+        } else if(container){
+            container.remove(item);
+        }
+    };
+    
+    ViewModel.prototype.is_deleted = function(item){
+        return item.ref() && item.ref() < 0;
+    };
+
+    ViewModel.prototype.wrap = function(name){
+        /*
+         * utility function to wrap a function of this object
+         * so that ko can bind it with a closure containing this
+         * as a that variable.
+         */
+        var that = this;
+        var fn_args = [].splice.call(arguments,1);
+        return function(){
+            var args = fn_args.concat([].splice.call(arguments,0));
+            return that[name].apply(that,args);
+        };
+    };
+    
+	var model = window['model'] = new ViewModel();
+	ko.applyBindings(model);
+});
+	</script>
 {% end %}

@@ -112,6 +112,7 @@ class UserEditHandler(tornado.web.RequestHandler):
             people = list(model.Person.query(session).all())
             permissions = list(model.Permission.query(session).all())
             self.render(self.tmpl, 
+                        page_name='users',
                         people=people, 
                         permissions=permissions, 
                         error=kwargs.get("error"), 
@@ -134,11 +135,12 @@ class PageEditHandler(tornado.web.RequestHandler):
         try:
             page = None
             pages = list(model.Page.query(session).order_by(model.Page.sequence).all())
-            if ref:
+            if ref and ref != '-':
                 page = model.Page.by_ref(session, ref)
             else:
-                page = pages[0]
-            self.render(self.tmpl, 
+                self.redirect("/page/%s/edit-html" % pages[0].ref)
+            self.render(self.tmpl,
+                        page_name='pages', 
                         page=page, 
                         pages=pages, 
                         error=kwargs.get("error"), 

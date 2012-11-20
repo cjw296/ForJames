@@ -6,9 +6,16 @@
 	<link rel="shortcut icon" href="{{ static_url('logo.png') }}" type="image/x-icon" />
 	<link href="{{ static_url('libs/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
 	<style type="text/css">
-body {
-  padding-top: 60px;
-  padding-bottom: 40px;
+/** collapsing menu compensation **/
+@media (max-width: 979px) {
+	.top-padding-block{
+		height:0px;
+	}
+}
+@media (min-width: 980px) {
+	.top-padding-block{
+		height:60px;
+	}
 }
 </style>
 	{% block header %}{% end %}
@@ -33,12 +40,16 @@ body {
         </div>
       </div>
     </div>
+    
+    <div class="top-padding-block"></div>
 
 	<div class="container">
 		<div class="row-fluid">
 			{% block editor %}{% end %}
 		</div>
 	</div>
+	<script type="text/javascript" src="{{ static_url('libs/jquery.js') }}"></script>
+	<script type="text/javascript" src="{{ static_url('libs/bootstrap/js/bootstrap.min.js') }}"></script>
 	{% block footer %}{% end %}
 </body>
 </html>

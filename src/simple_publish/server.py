@@ -25,6 +25,8 @@ import model_vfvt as model
 import logging
 import time
 from sqlalchemy.sql.expression import and_
+import json
+import datetime
 
 define("port", 8080, type=int, help="server port number (default: 8080)")
 define("db_url", 'sqlite:///simple_publish_vfvt.db', help="sqlalchemy db url")
@@ -109,16 +111,61 @@ class UserEditHandler(tornado.web.RequestHandler):
     def get(self, *args, **kwargs):
         session = self.application.Session()
         try:
-            people = list(model.Person.query(session).all())
+            criteria = self.get_argument("criteria","")
+            offset = int(self.get_argument("offset", "0"))
+            limit = int(self.get_argument("limit", "10"))
+            query = model.Person.query(session)
+            if criteria:
+                query = query.filter(model.Person.email.like("%s%%" % criteria))
+            count = query.count()
+            people = list(query.offset(offset).limit(limit))
             permissions = list(model.Permission.query(session).all())
             self.render(self.tmpl, 
                         page_name='users',
-                        people=people, 
+                        offset=offset,
+                        limit=limit,
+                        count=count,
+                        criteria=criteria,
+                        people=people,
                         permissions=permissions, 
                         error=kwargs.get("error"), 
                         action=kwargs.get("action"))
         finally:
             session.close()
+
+
+    @tornado.web.authenticated
+    def post(self):
+        error = None
+        session = self.application.Session()
+        now = datetime.datetime.now()
+        try:
+            data = json.loads(self.get_argument("data"))
+            for person_dict in data:
+                ref = person_dict.get("ref")
+                if ref is not None:
+                    person = model.Person.by_ref(session, abs(int(ref)))
+                    if int(ref) < 0:
+                        person.valid_to = now
+                        continue
+                else:
+                    person = model.Person()
+                    session.add(person)
+                person.email = person_dict.get("email")
+                person.password = person_dict.get("password")
+                current_perms = set([perm.ref for perm in person.permissions])
+                new_perms = set(person_dict.get("permissions"))
+                for perm_ref in current_perms - new_perms:
+                    person.permissions.remove(model.Permission.by_ref(session, perm_ref))
+                for perm_ref in new_perms - current_perms:
+                    person.permissions.append(model.Permission.by_ref(session, perm_ref))
+            session.commit() 
+        except Exception,ex:
+            error = str(ex)
+        finally:
+            session.close()
+        self.get(error=error)
+        
             
             
 class PageEditHandler(tornado.web.RequestHandler):

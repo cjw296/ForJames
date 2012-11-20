@@ -1,0 +1,61 @@
+{% extends "base-edit-tmpl.html" %}
+{% block header %}
+<style type="text/css">
+table .table-edit-cell-fld{
+	box-shadow: none;
+	margin:0;
+	padding:0;
+	padding-left:4px;
+	border-radius:0;
+	width:98%;
+	height: 98%;
+	border:none;
+	background-color: transparent;
+}
+table .table-edit-cell{
+	padding: 0;
+}
+table .ref_fld{
+	text-align:center;
+}
+</style>
+{% end %}
+{% block editor %}
+<legend>
+	Users
+	<div class="nav pull-right">
+	<button class="btn btn-warning">Save</button>
+	<button class="btn">Add User</button>
+	</div>
+</legend>
+<table class="table table-bordered table-condensed">
+	<thead>
+		<tr>
+			<th class="ref_fld">#</th>
+			<th>email</th>
+			<th>password</th>
+			{% for perm in permissions %}
+				<th>{{perm.name}}
+			{% end %}
+			<th></th>
+	</thead>
+	<tbody>
+		{% for person in people %}
+		<tr>
+			<td class="ref_fld">{{ person.ref }}</td>
+			<td class="table-edit-cell"><input class="table-edit-cell-fld" type="text" name="email" value="{{person.email}}" /></td>
+			<td class="table-edit-cell"><input class="table-edit-cell-fld" type="text" name="password" value="{{person.password}}" /></td>
+			{% for perm in permissions %}
+			<td style="text-align:center;">
+				<input type="checkbox" name="permission" value="{{perm.id}}" 
+					{%if perm in person.permissions%} checked="checked" {% end %} />
+			</td>
+			{% end %}
+			<td width="16">
+				<button class="btn btn-small btn-danger">Delete</button>
+			</td>
+		</tr>
+		{% end %}
+	</tbody>
+</table>
+{% end %}

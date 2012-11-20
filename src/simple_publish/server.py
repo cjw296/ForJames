@@ -97,6 +97,29 @@ class PageHandler(tornado.web.RequestHandler):
             session.close()
 
 
+class UserEditHandler(tornado.web.RequestHandler):
+    
+    tmpl = "users-edit-tmpl.html"
+    
+    def get_current_user(self):
+        return AccessHandler.get_auth_user_from_cookie(self)
+    
+    
+    @tornado.web.authenticated
+    def get(self, *args, **kwargs):
+        session = self.application.Session()
+        try:
+            people = list(model.Person.query(session).all())
+            permissions = list(model.Permission.query(session).all())
+            self.render(self.tmpl, 
+                        people=people, 
+                        permissions=permissions, 
+                        error=kwargs.get("error"), 
+                        action=kwargs.get("action"))
+        finally:
+            session.close()
+            
+            
 class PageEditHandler(tornado.web.RequestHandler):
     
     tmpl = "page-edit-tmpl.html"
@@ -213,6 +236,7 @@ def main():
         (r"/login", AccessHandler),
         (r"/page/(.*)/edit.html", PageEditHandler),
         (r"/page/(.*)", PageHandler),
+        (r"/users", UserEditHandler),
     ], static_path=resource_filename("web","www/static"), 
        template_path=resource_filename("simple_publish","templates"),
        cookie_secret="it_was_a_dark_and_stormy_night_for_publishing",

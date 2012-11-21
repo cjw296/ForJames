@@ -11,13 +11,24 @@
 	<h3 data-bind="text:title"></h3>
 	<div data-bind="text:content"></div>
 	
+	<input type="text" data-bind="value:content"/>
+	
+	<table data-bind="foreach:list">
+		<tr>
+			<td><input type="text" data-bind="value:label" /></td>
+		</tr>
+	</table>
+	<button data-bind="click:function(){ list.push({label:''});}">Add</button>
+	
 	<div class="container" style="margin-top:1em;font-size:small;">
-		<pre data-bind="text: ko.toJSON($root.content, null, 2)"></pre>
+		<pre data-bind="text: ko.toJSON($root, null, 2)"></pre>
 	</div>
 	
 	<script type="text/javascript" src="static/libs/jquery.js"></script>
 	<script type="text/javascript" src="static/libs/knockout/knockout-2.2.0.js"></script>
+	<script type="text/javascript" src="static/libs/knockout/knockout.mapping-2.3.3.js"></script>
 	<script type="text/javascript" src="static/libs/knockout/knockout.validation.js"></script>
+	
 	
 	<script type="text/javascript">
 	/** will run after the previous scripts have loaded **/
@@ -26,13 +37,17 @@ $(function(){
 	/** calling jQuery(function) asks jQuery to run function after document load is completed **/
 	
 	/** declare a view model **/
+	/** NB. Not all items need to be observable, they can be read once write many, by being just js objects **/
 	var viewModel = {
 		title: ko.observable('title'),
-		content: ko.observable("Hello World!")
+		content: "Hello World!",
+		list: ko.observableArray([{label:"a"},{label:"b"},{label:"c"}])
 	};
 	
 	/** bind it to the document; just don't say what to bind it to **/
 	ko.applyBindings(viewModel);
+	
+	window.view_model = viewModel;
 });
 	
 	</script>

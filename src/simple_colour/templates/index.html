@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>Like Colours</title>
+	<link href="{{ static_url('libs/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+</head>
+<body>
+	<div class="container">
+		<div class="row">
+			<ul class="nav nav-pills nav-stacked span2" data-bind="foreach:model.colours">
+				<li>
+					<a href="#" data-bind="click:$root.wrap('vote',null,$data[1])">
+						<span class="badge" data-bind="text:$data[2] || 0"></span>
+						<span data-bind="text:$data[1]"></span>
+					</a>
+				</li>
+			</ul>
+		</div>
+		<div class="row">
+			<div class="input-append">
+		  		<input type="text" name="colour" 
+		  			   data-bind="value:model.colour_entry,
+		  			   			  event:{keyup: function(d,e){if(e.keyCode===13){ $root.add_colour_btn(); return false; } return true; } }" 
+		  			   autofocus="autofocus" />
+		  		<button class="btn" data-bind="click:$root.wrap('add_colour_btn')">
+		  			Add
+		  		</button>
+			</div>
+		</div>
+	</div>
+	
+	<script type="text/javascript" src="{{ static_url('libs/jquery.js') }}"></script>
+	<script type="text/javascript" src="{{ static_url('libs/bootstrap/js/bootstrap.min.js') }}"></script>
+	<script type="text/javascript" src="{{ static_url('libs/knockout/knockout-2.2.0.js') }}"></script>
+	<script type="text/javascript" src="{{ static_url('libs/sockjs-0.3.4.min.js') }}"></script>	
+	<script type="text/javascript" src="/appl.js"></script>	
+	<script>
+		
+		Appl.prototype.initialize = function(){
+			/** customize the constructor **/
+			this.model = {
+				colours: ko.observableArray(),
+				colour_entry: ko.observable('')
+			};
+		};
+		
+		Appl.prototype.opened = function(){
+			/** customize the connected **/
+			this.colours();
+		};
+	
+		Appl.prototype.add_colour_btn = function(){
+			/** validate input and call add **/
+			var that = this;
+			blur();
+			if(this.model.colour_entry()){
+				this.add_colour(function(){
+					that.model.colour_entry('');
+				}, this.model.colour_entry());
+			}
+		};
+		
+		Appl.prototype.broadcast = function(message){
+			/** others have been busy **/
+			if(message.method=='colours'){
+				
+				this.model.colours(message.result);
+				
+			} else if(message.signal == 'voted'){
+				
+				var bmessage = message.message;
+				var colours = this.model.colours;
+				for(var i=0; i < colours().length;i++){
+					if(colours()[i][0]==bmessage.id){
+						colours.splice(i,1,[bmessage.id,
+						                    bmessage.name,
+						                    bmessage.votes]);
+						break;
+					}
+				}
+			} else if(message.signal == 'colour added'){
+				var bmessage = message.message;
+				this.model.colours.push([bmessage.id,
+				                         bmessage.name,
+				                         bmessage.votes]);
+			}
+			console.log("message",message);
+		};
+		
+
+		/** instantiate appl, bind to dom and connect **/
+		var appl = new Appl();
+		ko.applyBindings(appl);
+		appl.connect();
+	</script>
+</body>
+</html>

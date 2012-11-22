@@ -19,6 +19,7 @@ setup(name='for_james',
       install_requires = [
         'setuptools',
         'tornado>=2.4',
+        'sockjs-tornado',
         'sqlalchemy>=0.7.9'
       ],
       entry_points = {

@@ -26,7 +26,7 @@ def main():
     WSRouter = SockJSRouter(plumbing.Connection, '/sockjs')
     handlers = [
         (r'/', MainHandler),
-        (r'/plumbing', plumbing.JSHandler),
+        (r'/appl.js', plumbing.JSHandler),
         (r'/websocket', plumbing.WebSocket)
     ] + WSRouter.urls
 

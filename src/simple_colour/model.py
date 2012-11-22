@@ -38,16 +38,17 @@ class Vote(Base):
     
     @classmethod
     def vote(cls, session, name):
-        colour = Colour.find_or_create(session, name)
-        if colour.id is None:
-            vote = cls(colour=colour,votes=1) 
+        colour_id, vote = session.query(Colour.id, cls).\
+                               outerjoin(cls, Colour.id==cls.colour_id).\
+                               filter(Colour.name==name).\
+                               first()
+        if colour_id is None:
+            colour = Colour(name=name)
+            vote = cls(colour=colour, votes=0)
+            session.add_all([colour, vote])
+        if vote is None:
+            vote = cls(colour_id=colour_id, votes=0)
             session.add(vote)
-        else:
-            vote = session.query(cls).filter(cls.colour_id==colour.id).first()
-            if vote is None:
-                vote = cls(colour=colour,votes=1) 
-                session.add(vote)
-            else:
-                vote.votes = vote.votes + 1
+        vote.votes = vote.votes + 1
         return vote
         

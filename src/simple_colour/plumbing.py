@@ -18,7 +18,11 @@ import json
 
 
 class Control(object):
-    CONTROL = None # singleton
+    ''' 
+        The stuff you don't need to see - just assume it's there. 
+    '''
+    
+    CONTROL = None # singleton, because SockJSConnection is not a Handler, sadly
 
     
     def __init__(self, Base, db_url="sqlite://", echo=False):
@@ -98,22 +102,11 @@ class Control(object):
         self._to_broadcast_.append((signal,kwargs))
         
         
-
-
-class WebSocket(WebSocketHandler):
-    
-    clients = []
-    
-    def open(self):
-        WebSocket.clients.append(self)
-        logging.debug("session open")
+class _OnMessageMixin_(object):
+    ''' 
+        Avoiding duplication 
+    '''
         
-    def on_close(self):
-        if WebSocket.clients:
-            WebSocket.clients.remove(self)
-        logging.debug("session closed")
-        
-
     def on_message(self, message):    
         started = time.time()
             
@@ -123,8 +116,8 @@ class WebSocket(WebSocketHandler):
         kwargs = message.get("kwargs")
                 
         try:
-            self.on_result(method, request_id, self.application.control._perform_(method, kwargs))
-            for signal, message in self.application.control._to_broadcast_:
+            self.on_result(method, request_id, Control.CONTROL._perform_(method, kwargs))
+            for signal, message in Control.CONTROL._to_broadcast_:
                 broadcast = json.dumps({"signal":signal,"message": message})
                 self.broadcast(WebSocket.clients, broadcast)
         except Exception,ex:
@@ -133,6 +126,22 @@ class WebSocket(WebSocketHandler):
             
         request_time = 1000.0 * (time.time() - started)
         logging.info("%s %.2fms", message, request_time )
+        
+
+
+class WebSocket(_OnMessageMixin_,WebSocketHandler):
+    ''' 
+        Using the default tornado WebSocket Handler 
+    '''
+    
+    clients = []
+    
+    def open(self):
+        WebSocket.clients.append(self)
+        
+    def on_close(self):
+        if self in WebSocket.clients:
+            WebSocket.clients.remove(self)
     
     def on_result(self, method, request_id, result=None, error=None):
             self.write_message(json.dumps({
@@ -149,7 +158,10 @@ class WebSocket(WebSocketHandler):
 
 
 
-class Connection(SockJSConnection):
+class Connection(_OnMessageMixin_,SockJSConnection):
+    ''' 
+        Using the SockJS WebSocket Connection 
+    '''
     
     clients = []
     
@@ -157,29 +169,9 @@ class Connection(SockJSConnection):
         Connection.clients.append(self)
         
     def on_close(self):
-        Connection.clients.remove(self)
+        if self in Connection.clients:
+            Connection.clients.remove(self)
         
-
-    def on_message(self, message):    
-        started = time.time()
-            
-        message = json.loads(message)
-        request_id = message.get('request_id')
-        method = message.get("method")
-        kwargs = message.get("kwargs")
-                
-        try:
-            self.on_result(method, request_id, Control.CONTROL._perform_(method, kwargs))
-            for signal, message in Control.CONTROL._to_broadcast_:
-                broadcast = json.dumps({"signal":signal,"message": message})
-                print broadcast
-                self.broadcast(Connection.clients, broadcast)
-        except Exception,ex:
-            logging.exception(ex)
-            self.on_result(method, request_id, error=str(ex))
-            
-        request_time = 1000.0 * (time.time() - started)
-        logging.info("%s %.2fms", message, request_time )
     
     def on_result(self, method, request_id, result=None, error=None):
             self.send(json.dumps({
@@ -191,7 +183,10 @@ class Connection(SockJSConnection):
 
 
 class JSHandler(tornado.web.RequestHandler):
-
+    ''' 
+        A self describing Control expresses as a tornado template, 
+        sent back as javascript
+    '''
     def get(self):
         self.add_header("content-type", "text/javascript")
         self.render("appl.js", description=Control._describe_service_(Control.CONTROL))

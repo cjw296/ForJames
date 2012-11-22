@@ -1,13 +1,38 @@
 
+;
+(function(window, ko, $){
+	
+var NEXT_REQUEST_ID = 0;
+var RECONNECT_TIME_DEFAULT = 3000;
+var RECONNECT_TIME = RECONNECT_TIME_DEFAULT;
+var RECONNECT_TIMEOUT = null;
+var _response_callbacks_ = [];
+
+function _get_next_request_id_(callback){
+	NEXT_REQUEST_ID = NEXT_REQUEST_ID + 1;
+	_response_callbacks_.push([NEXT_REQUEST_ID, callback]);
+	return NEXT_REQUEST_ID;
+};
+
+function _reconnect_(callback){
+	RECONNECT_TIMEOUT = setTimeout(function(){ 
+		RECONNECT_TIMEOUT = null;
+		callback();
+	}, RECONNECT_TIME);
+	RECONNECT_TIME = RECONNECT_TIME + RECONNECT_TIME;
+};
+
+function _reconnected_(){
+	if(RECONNECT_TIMEOUT !== null){
+		clearTimeout(RECONNECT_TIMEOUT);
+		RECONNECT_TIMEOUT = null;
+	}
+};
+
 function Appl(){
 	var that = this;
 	this._sock_ = null;
 
-	this._RECONNECT_TIME_DEFAULT_ = 3000;
-	this._RECONNECT_TIME_ = this._RECONNECT_TIME_DEFAULT_;
-	this._RECONNECT_TIMEOUT_ = null;
-	this._response_callbacks_ = [];
-	this._id_seed_ = 0;
 	this._status_ = ko.observable();
 	this._error_ = ko.observable();
 	this._broadcast_ = ko.observable();
@@ -15,46 +40,17 @@ function Appl(){
 		that.broadcast(value);
 	});
 	this.initialize();
-}		
-
-Appl.prototype.initialize = function(){};	
-
-Appl.prototype.opened = function(){};
-
-Appl.prototype.closed = function(){};
-
-Appl.prototype.broadcast = function(){};
-
+}
 
 Appl.prototype.request_response = function(method,kwargs,callback){
-	this._id_seed_ = this._id_seed_ + 1;
-	this._response_callbacks_.push([this._id_seed_, callback || null]);
-	var request_id = this._id_seed_;
+	var request_id = _get_next_request_id_(callback);
 	var message = {"method": method, "kwargs": kwargs || {}, "request_id": request_id};
 	this._sock_.send(JSON.stringify(message));
 };
 
-
-
-Appl.prototype._reconnect_ = function(callback){
-	var that = this;
-	this._RECONNECT_TIMEOUT_ = setTimeout(function(){ 
-		that._RECONNECT_TIMEOUT_ = null;
-		callback();
-	}, this._RECONNECT_TIME_);
-	this._RECONNECT_TIME_ = this._RECONNECT_TIME_ + this._RECONNECT_TIME_;
-};
-
-Appl.prototype._reconnected_ = function(){
-	if(this._RECONNECT_TIMEOUT_ !== null){
-		clearTimeout(this._RECONNECT_TIMEOUT_);
-		this._RECONNECT_TIMEOUT_ = null;
-	}
-};
-
 Appl.prototype.connect = function(){
 	var that = this;
-	this._reconnected_();
+	_reconnected_();
 	this._status_("connecting...");
 	/*
 	var protocol = document.location.protocol == "https:"? "https://" : "http://";
@@ -69,10 +65,10 @@ Appl.prototype.connect = function(){
 	this._sock_.onmessage = function(e) {
 		var message = JSON.parse(e.data);
 		var callback = null;
-		for(var i=0; i < that._response_callbacks_.length; i++){
-			if(that._response_callbacks_[i][0]==message.request_id){
-				callback = that._response_callbacks_[i][1];
-				that._response_callbacks_.splice(i,1);
+		for(var i=0; i < _response_callbacks_.length; i++){
+			if(_response_callbacks_[i][0]==message.request_id){
+				callback = _response_callbacks_[i][1];
+				_response_callbacks_.splice(i,1);
 				break;
 			}
 		}
@@ -85,8 +81,8 @@ Appl.prototype.connect = function(){
 	this._sock_.onclose = function() {
 		that._status_("disconnected");
 		that.closed();
-		that._status_('reconnecting in ' + (that._RECONNECT_TIME_/1000) + ' secs');
-		that._reconnect_(function(){that.connect()});
+		that._status_('reconnecting in ' + (RECONNECT_TIME/1000) + ' secs');
+		_reconnect_(function(){that.connect()});
 	};
 	this._sock_.onerror = function(evt) {
 		that._error_(evt);
@@ -117,7 +113,7 @@ Appl.prototype.default_key = function(func){
 	}
 };
 
-/*** generated method to control here ***/
+/*** generated method to control here, server-side ***/
 
 {% for method in description %}
 Appl.prototype.{{ method["name"] }} = function(callback{{ ', ' if method['args'] else '' }}{{ ', '.join(method['args']) }}){
@@ -127,3 +123,20 @@ Appl.prototype.{{ method["name"] }} = function(callback{{ ', ' if method['args']
 };
 Appl.prototype.{{ method["name"] }}.docs = "{{ method.get("docs").replace('\n',' ') if method.get("docs") else '' }}";
 {% end %}
+
+
+/** these get over-written for workflow **/
+
+Appl.prototype.initialize = function(){};	
+
+Appl.prototype.opened = function(){};
+
+Appl.prototype.closed = function(){};
+
+Appl.prototype.broadcast = function(){};
+
+
+
+window['Appl'] = Appl;
+
+}.call({},window, ko, jQuery));

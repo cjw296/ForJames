@@ -7,7 +7,7 @@ Appl.prototype.initialize = function(){
 	};
 };
 
-Appl.prototype.opened = function(){
+Appl.prototype.connected = function(){
 	/** customize the connected **/
 	this.colours();
 };

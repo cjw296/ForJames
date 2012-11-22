@@ -60,7 +60,7 @@ Appl.prototype.connect = function(){
 	this._sock_ = new WebSocket(protocol + document.domain + ":" + document.location.port + '/websocket');
 	this._sock_.onopen = function() {
 		that._status_("connected");
-		that.opened();
+		that.connected();
 	};
 	this._sock_.onmessage = function(e) {
 		var message = JSON.parse(e.data);
@@ -80,7 +80,7 @@ Appl.prototype.connect = function(){
 	};
 	this._sock_.onclose = function() {
 		that._status_("disconnected");
-		that.closed();
+		that.disconnected();
 		that._status_('reconnecting in ' + (RECONNECT_TIME/1000) + ' secs');
 		_reconnect_(function(){that.connect()});
 	};
@@ -129,9 +129,9 @@ Appl.prototype.{{ method["name"] }}.docs = "{{ method.get("docs").replace('\n','
 
 Appl.prototype.initialize = function(){};	
 
-Appl.prototype.opened = function(){};
+Appl.prototype.connected = function(){};
 
-Appl.prototype.closed = function(){};
+Appl.prototype.disconnected = function(){};
 
 Appl.prototype.broadcast = function(){};
 

@@ -5,6 +5,7 @@ Created on Nov 22, 2012
 '''
 import unittest
 from simple_colour.control import Control
+from simple_colour import model
 echo = False
 
 #import logging
@@ -15,7 +16,7 @@ class Test(unittest.TestCase):
 
 
     def setUp(self):
-        self.control = Control(echo=echo)
+        self.control = Control(model.Base, echo=echo)
 
 
     def tearDown(self):

@@ -12,7 +12,7 @@ from simple_colour import plumbing
 import logging
 
 options.define("port", 8080, type=int, help="server port number (default: 8080)")
-options.define("db_url", 'sqlite:///simple_publish_vfvt.db', help="sqlalchemy db url")
+options.define("db_url", 'sqlite://', help="sqlalchemy db url")
 
 class MainHandler(web.RequestHandler):
     ''' Returns our index.html from templates folder '''

@@ -8,6 +8,8 @@ from simple_colour import plumbing
 import logging
 
 class Control(plumbing.Control):
+    ''' Wraps a connection to the model, marshaling information to and from it via a session '''
+    
         
     def colours(self):
         ''' returns the current list of colours and their votes '''

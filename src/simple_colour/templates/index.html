@@ -34,7 +34,7 @@
 	<script type="text/javascript" src="{{ static_url('libs/bootstrap/js/bootstrap.min.js') }}"></script>
 	<script type="text/javascript" src="{{ static_url('libs/knockout/knockout-2.2.0.js') }}"></script>
 	<script type="text/javascript" src="{{ static_url('libs/sockjs-0.3.4.min.js') }}"></script>	
-	<script type="text/javascript" src="/appl.js"></script>	
+	<script type="text/javascript" src="/plumbing"></script>	
 	<script>
 		
 		Appl.prototype.initialize = function(){
@@ -69,21 +69,21 @@
 				
 			} else if(message.signal == 'voted'){
 				
-				var bmessage = message.message;
+				var item = message.message;
 				var colours = this.model.colours;
 				for(var i=0; i < colours().length;i++){
-					if(colours()[i][0]==bmessage.id){
-						colours.splice(i,1,[bmessage.id,
-						                    bmessage.name,
-						                    bmessage.votes]);
+					if(colours()[i][0]==item.id){
+						colours.splice(i,1,[item.id,
+						                    item.name,
+						                    item.votes]);
 						break;
 					}
 				}
 			} else if(message.signal == 'colour added'){
-				var bmessage = message.message;
-				this.model.colours.push([bmessage.id,
-				                         bmessage.name,
-				                         bmessage.votes]);
+				var item = message.message;
+				this.model.colours.push([item.id,
+				                         item.name,
+				                         item.votes]);
 			}
 			console.log("message",message);
 		};

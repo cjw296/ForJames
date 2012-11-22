@@ -4,10 +4,10 @@ Created on Nov 22, 2012
 @author: peterb
 '''
 from simple_colour import model
-from simple_colour.plumbing import SessionControl
+from simple_colour import plumbing
 import logging
 
-class Control(SessionControl):
+class Control(plumbing.Control):
         
     def colours(self):
         ''' returns the current list of colours and their votes '''

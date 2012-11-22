@@ -10,8 +10,14 @@ from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import sessionmaker
     
 
+from sockjs.tornado import SockJSConnection
+from tornado.websocket import WebSocketHandler
+import tornado.web
+import time
+import json
 
-class SessionControl(object):
+
+class Control(object):
     CONTROL = None # singleton
 
     
@@ -20,7 +26,7 @@ class SessionControl(object):
         Base.metadata.create_all(self._engine)
         self._Session = sessionmaker(self._engine)
         self._to_broadcast_ = []
-        SessionControl.CONTROL = self
+        Control.CONTROL = self
         
     def _dispose_(self):
         ''' tidy up we've gone away '''
@@ -91,3 +97,103 @@ class SessionControl(object):
         ''' cache message until transaction closes cleanly '''
         self._to_broadcast_.append((signal,kwargs))
         
+        
+
+
+class WebSocket(WebSocketHandler):
+    
+    clients = []
+    
+    def open(self):
+        WebSocket.clients.append(self)
+        logging.debug("session open")
+        
+    def on_close(self):
+        if WebSocket.clients:
+            WebSocket.clients.remove(self)
+        logging.debug("session closed")
+        
+
+    def on_message(self, message):    
+        started = time.time()
+            
+        message = json.loads(message)
+        request_id = message.get('request_id')
+        method = message.get("method")
+        kwargs = message.get("kwargs")
+                
+        try:
+            self.on_result(method, request_id, self.application.control._perform_(method, kwargs))
+            for signal, message in self.application.control._to_broadcast_:
+                broadcast = json.dumps({"signal":signal,"message": message})
+                self.broadcast(WebSocket.clients, broadcast)
+        except Exception,ex:
+            logging.exception(ex)
+            self.on_result(method, request_id, error=str(ex))
+            
+        request_time = 1000.0 * (time.time() - started)
+        logging.info("%s %.2fms", message, request_time )
+    
+    def on_result(self, method, request_id, result=None, error=None):
+            self.write_message(json.dumps({
+                                  "method": method,
+                                  "result": result,
+                                  "error": error,
+                                  "request_id": request_id
+                                 }))
+            
+    def broadcast(self, clients, message):
+        for client in clients:
+            client.write_message(message)
+            logging.debug('wrote %s', message)
+
+
+
+class Connection(SockJSConnection):
+    
+    clients = []
+    
+    def on_open(self, request):
+        Connection.clients.append(self)
+        
+    def on_close(self):
+        Connection.clients.remove(self)
+        
+
+    def on_message(self, message):    
+        started = time.time()
+            
+        message = json.loads(message)
+        request_id = message.get('request_id')
+        method = message.get("method")
+        kwargs = message.get("kwargs")
+                
+        try:
+            self.on_result(method, request_id, Control.CONTROL._perform_(method, kwargs))
+            for signal, message in Control.CONTROL._to_broadcast_:
+                broadcast = json.dumps({"signal":signal,"message": message})
+                print broadcast
+                self.broadcast(Connection.clients, broadcast)
+        except Exception,ex:
+            logging.exception(ex)
+            self.on_result(method, request_id, error=str(ex))
+            
+        request_time = 1000.0 * (time.time() - started)
+        logging.info("%s %.2fms", message, request_time )
+    
+    def on_result(self, method, request_id, result=None, error=None):
+            self.send(json.dumps({
+                                  "method": method,
+                                  "result": result,
+                                  "error": error,
+                                  "request_id": request_id
+                                 }))
+
+
+class JSHandler(tornado.web.RequestHandler):
+
+    def get(self):
+        self.add_header("content-type", "text/javascript")
+        self.render("appl.js", description=Control._describe_service_(Control.CONTROL))
+        
+    

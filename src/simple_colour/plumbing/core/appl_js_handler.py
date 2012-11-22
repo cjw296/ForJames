@@ -3,11 +3,11 @@ Created on Nov 22, 2012
 
 @author: peterb
 '''
-import tornado.web
+from tornado import web
 from simple_colour.plumbing.core.control import Control
 from simple_colour.plumbing.access.access_handler import AccessHandler
 
-class ApplJsHandler(tornado.web.RequestHandler):
+class ApplJsHandler(web.RequestHandler):
     ''' 
         A self describing Control expresses as a tornado template, 
         sent back as javascript
@@ -15,8 +15,9 @@ class ApplJsHandler(tornado.web.RequestHandler):
     def get_current_user(self):
         return AccessHandler.get_auth_user_from_cookie(self)
 
-    @tornado.web.authenticated
     def get(self):
+        if self.application.settings.get('login_url') and self.current_user is None:
+            raise web.HTTPError(403)
         self.add_header("content-type", "text/javascript")
         self.render("appl.js", description=Control._describe_service_(Control.CONTROL))
         

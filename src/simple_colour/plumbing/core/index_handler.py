@@ -17,6 +17,7 @@ class IndexHandler(web.RequestHandler):
     def get_current_user(self):
         return AccessHandler.get_auth_user_from_cookie(self)
 
-    @web.authenticated    
-    def get(self):
+    def get(self):  
+        if self.application.settings.get('login_url') and self.current_user is None:
+            raise web.HTTPError(403)
         self.render(self.page)

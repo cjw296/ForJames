@@ -3,14 +3,12 @@ Created on Nov 22, 2012
 
 @author: peterb
 '''
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
+from simple_colour.plumbing import Base, Common
 
-Base = declarative_base()
 
-class Colour(Base):
-    __tablename__ = "colour"
+class Colour(Base, Common):
     
     id = Column(Integer, primary_key=True)
     name = Column(String(80), unique=True, nullable=False)
@@ -24,8 +22,7 @@ class Colour(Base):
         return result
     
 
-class Vote(Base):
-    __tablename__ = "vote"
+class Vote(Base, Common):
     
     id = Column(Integer, primary_key=True)
     votes = Column(Integer, default=0)

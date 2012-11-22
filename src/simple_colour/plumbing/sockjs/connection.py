@@ -6,10 +6,10 @@ Created on Nov 22, 2012
 
 from sockjs.tornado import SockJSConnection
 import json
-from simple_colour.plumbing.access_handler import AccessHandler
+from simple_colour.plumbing.access.access_handler import AccessHandler
 import logging
 import time
-from simple_colour.plumbing.control import Control
+from simple_colour.plumbing.core.control import Control
 
 
 

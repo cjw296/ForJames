@@ -5,7 +5,7 @@ Created on Nov 22, 2012
 '''
 
 from tornado import web
-from simple_colour.plumbing.access_handler import AccessHandler
+from simple_colour.plumbing.access.access_handler import AccessHandler
 
 
 class IndexHandler(web.RequestHandler):

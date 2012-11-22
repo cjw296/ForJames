@@ -4,11 +4,11 @@ Created on Nov 22, 2012
 @author: peterb
 '''
 from tornado.websocket import WebSocketHandler
-from simple_colour.plumbing.control import Control
+from simple_colour.plumbing.core.control import Control
 import json
 import logging
 import time
-from simple_colour.plumbing.access_handler import AccessHandler
+from simple_colour.plumbing.access.access_handler import AccessHandler
 
 
 class WebSocket(WebSocketHandler):

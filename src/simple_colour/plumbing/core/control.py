@@ -8,26 +8,7 @@ import inspect
 
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import sessionmaker
-from sqlalchemy.sql.expression import and_
-from sqlalchemy.orm import joinedload_all
-from simple_colour.plumbing.user import User
-from simple_colour.plumbing.model import Base
-from simple_colour.plumbing import model
-from sqlalchemy.exc import IntegrityError
-
-
-
-def requires_permission(permissions):
-    ''' This annotation tells the service which permissions are rquired to perform the function '''
-    def _require(f):            
-        def call(self, *args, **kwargs):
-            self._require_permission_(*permissions)
-            result = f(self, *args, **kwargs)
-            return result
-        call._wrapped_ = f
-        call._service_permissions_ = permissions
-        return call
-    return _require
+from simple_colour.plumbing.core.model import Base
 
 
 class Control(object):
@@ -58,25 +39,7 @@ class Control(object):
         
         
     def _init_db_(self, session):
-        try:
-            permissions = [model.Permission(name=name) for name in model.Permission.ROLES]
-            session.add_all(permissions)
-            
-            admin = model.Person(email="admin",password="admin")       
-            user = model.Person(email="user",password="user")
-            
-            session.add_all([admin, user])
-            
-            admin.permissions.append(permissions[0])
-            admin.permissions.append(permissions[1])
-            user.permissions.append(permissions[1])
-                
-            session.commit()
-        except IntegrityError:
-            pass
-        except Exception, ex:
-            logging.warn(ex)
-            raise
+        pass
         
         
     @classmethod
@@ -112,9 +75,11 @@ class Control(object):
                 methods.append(description)
         return methods
         
+        
     @property
     def _session(self):    
         return self._Session()
+    
         
     @property
     def _session_context(self):
@@ -144,44 +109,5 @@ class Control(object):
     def _broadcast_on_success_(self, signal, **kwargs):
         ''' cache message until transaction closes cleanly '''
         self._to_broadcast_.append((signal,kwargs))
-
-    ''' Access Control '''
-        
-    def _login_(self, email, password):
-        with self.session_context as session:
-            person = session.query(model.Person).filter(and_(model.Person.email==email,
-                                                             model.Person.password==password)).first()
-            if person is None:
-                raise Exception("Email or password incorrect!")
-            return person.id
-
-    @property
-    def _accl_key(self):
-        return self._accl_key_
-    
-    @property
-    def _user(self):
-        if self._user_ is None:
-            self._user_ = self._load_user_(self._accl_key)
-        return self._user_
-
-
-    def _load_user_(self, id):
-        with self._session_context as session:
-            person = session.query(model.Person).\
-                              options(joinedload_all(model.Person.permissions)).get(id)
-            if person:
-                result = User(person.id, 
-                              person.email,
-                              [p.name for p in person.permissions])
-                return result
         
         
-    def _require_permission_(self, *args):
-        '''
-            Given the users persmissions.
-            When the user has none of the permissions in args.
-            Then raise an exception.
-        '''
-        if self._user.has_permissions(*args) is False:
-            raise Exception("You do not have permission for this action.")

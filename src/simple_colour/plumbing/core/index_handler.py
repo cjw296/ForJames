@@ -19,5 +19,5 @@ class IndexHandler(web.RequestHandler):
 
     def get(self):  
         if self.application.settings.get('login_url') and self.current_user is None:
-            raise web.HTTPError(403)
+            self.redirect(self.application.settings.get('login_url'))
         self.render(self.page)

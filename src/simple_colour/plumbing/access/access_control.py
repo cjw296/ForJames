@@ -57,7 +57,7 @@ class AccessControl(Control):
 
         
     def _login_(self, email, password):
-        with self.session_context as session:
+        with self._session_context as session:
             person = session.query(Person).filter(and_(Person.email==email,
                                                        Person.password==password)).first()
             if person is None:

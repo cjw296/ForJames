@@ -1,10 +1,22 @@
 
 Appl.prototype.initialize = function(){
 	/** customize the constructor **/
+	var that = this;
 	this.model = {
 		colours: ko.observableArray(),
-		colour_entry: ko.observable('')
+		colour_entry: ko.observable(''),
+		selected_colour: ko.observable()
 	};
+	var sorting = false;
+	this.model.colours.subscribe(function(){
+		if(sorting === false){
+			sorting = true;
+			that.model.colours.sort(function(b,a){
+				return a[2] == b[2] ? 0 : (a[2] < b[2] ? -1 : 1);
+			});
+			sorting = false;
+		}
+	});
 };
 
 Appl.prototype.connected = function(){

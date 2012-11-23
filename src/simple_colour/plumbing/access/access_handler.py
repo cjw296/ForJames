@@ -19,7 +19,7 @@ class AccessHandler(tornado.web.RequestHandler):
             self.redirect('/')
             return
         email = self.get_argument("email",default=None)
-        self.render("login.html", email=email, error=error)
+        self.render("plumbing/login.html", email=email, error=error)
         
                 
     def post(self):

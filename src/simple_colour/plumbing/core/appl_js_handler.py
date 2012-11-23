@@ -19,5 +19,5 @@ class ApplJsHandler(web.RequestHandler):
         if self.application.settings.get('login_url') and self.current_user is None:
             raise web.HTTPError(403)
         self.add_header("content-type", "text/javascript")
-        self.render("appl.js", description=Control._describe_service_(Control.CONTROL))
+        self.render("plumbing/appl.js", description=Control._describe_service_(Control.CONTROL))
         

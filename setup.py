@@ -25,6 +25,5 @@ setup(name='for_james',
       entry_points = {
       'console_scripts' : [
                            'publish_for_james = simple_publish.server:main',
-                           'colour_server = simple_colour.server:main'
                            ]
       })

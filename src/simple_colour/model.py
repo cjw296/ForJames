@@ -31,10 +31,11 @@ class Vote(Base, Common):
     
     @classmethod
     def vote(cls, session, name):
-        colour_id, vote = session.query(Colour.id, cls).\
+        result = session.query(Colour.id, cls).\
                                   outerjoin(cls, Colour.id==cls.colour_id).\
                                   filter(Colour.name==name).\
                                   first()
+        colour_id, vote = result if result else (None,None)
         if colour_id is None:
             colour = Colour(name=name)
             vote = cls(colour=colour, votes=0)

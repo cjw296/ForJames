@@ -31,6 +31,13 @@ class Test(unittest.TestCase):
         self.assertEquals(row,(1,"red",2))
 
 
+    def testVote(self):
+        self.control.vote("red")
+        self.control.vote("red")
+        row = self.control.colours()[0]
+        self.assertEquals(row,(1,"red",2))
+
+
     def testList(self):
         self.control.add_colour("blue")
         row = self.control.colours()[0]

@@ -76,6 +76,9 @@ Appl.prototype.connect = function(){
 			callback.call(this, message);
 		} else {
 			that._broadcast_(message);
+			if(message.error){
+				that._error_(message.error);
+			}
 		}
 	};
 	this._sock_.onclose = function() {

@@ -9,7 +9,10 @@ Appl.prototype.initialize = function(){
 
 Appl.prototype.connected = function(){
 	/** customize the connected **/
-	this.colours();
+	var that = this;
+	this.colours(function(message){
+		that.model.colours(message.result);
+	});
 };
 
 Appl.prototype.add_colour_btn = function(){
@@ -25,20 +28,24 @@ Appl.prototype.add_colour_btn = function(){
 
 Appl.prototype.broadcast = function(message){
 	/** others have been busy **/
-	if(message.method=='colours'){
-		this.model.colours(message.result);
-	}
-	else if(message.signal == 'voted'){
+	if(message.signal == 'voted'){
 		
 		var item = message.message;
 		var colours = this.model.colours;
+		var updated = false;
 		for(var i=0; i < colours().length;i++){
 			if(colours()[i][0]==item.id){
 				colours.splice(i,1,[item.id,
 				                    item.name,
 				                    item.votes]);
+				updated = true;
 				break;
 			}
+		}
+		if(updated === false){
+			this.model.colours.push([item.id,
+			                         item.name,
+			                         item.votes]);
 		}
 	} 
 	else if(message.signal == 'colour added'){
